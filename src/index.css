@@ -24,11 +24,11 @@ a:hover {
 
 body {
   margin: 0;
-  /*display: flex;*/
+  display: flex;
   place-items: center;
+  flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
-
 }
 
 @media (prefers-color-scheme: light) {
@@ -37,4 +37,3 @@ body {
     background-color: #ffffff;
   }
 }
-

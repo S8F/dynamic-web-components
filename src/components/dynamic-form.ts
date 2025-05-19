@@ -1,105 +1,233 @@
-// src/components/dynamic-form.ts
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import './form-field';
+import { LitElement, html, css } from "lit-element";
+import { property, customElement } from "lit/decorators.js";
 
-@customElement('dynamic-form')
+type Field = {
+  type: string;
+  name: string;
+  label: string;
+  placeholder?: string;
+  maxLength?: number;
+  required?: boolean;
+  options?: { label: string; value: string }[];
+  value?: string;
+};
+
+type FormSpec = {
+  title: string;
+  fields: Field[];
+};
+
+@customElement("dynamic-form")
 export class DynamicForm extends LitElement {
-  static styles = css`
-    .form-container {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 2rem;
-      max-width: 400px;
-      margin: 2rem auto;
-      box-shadow: 0 2px 8px #eee;
-      background: #fff;
-    }
-    h2 {
-      margin-top: 0;
-    }
-    button {
-      margin-top: 1.5rem;
-      padding: 0.5rem 2rem;
-      border-radius: 5px;
-      border: none;
-      background: #5a67d8;
-      color: white;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .error {
-      color: #d8000c;
-      margin-bottom: 1rem;
-    }
-  `;
+  @property({ type: Object }) spec: FormSpec | null = null;
 
-  @property({ type: Object }) spec: any = {};
-  @state() private formData: Record<string, any> = {};
-  @state() private errors: Record<string, string> = {};
+  private _formValues: Record<string, any> = {};
 
-  // Collect field values as they're changed
-  private handleFieldChange(e: CustomEvent) {
-    const { name, value } = e.detail;
-    this.formData = { ...this.formData, [name]: value };
-    // Optionally clear error on change
-    this.errors = { ...this.errors, [name]: '' };
+static styles = css`
+  :host {
+    display: block;
+    max-width: 520px;
+    width: 100%;
+    margin: 2rem auto;
+    font-family: system-ui, sans-serif;
+    background: #f9fafb;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1.5px 6px rgba(0,0,0,0.02);
+    padding: 2.5rem 2rem 2rem 2rem;
   }
 
-  private validate() {
-    const errors: Record<string, string> = {};
-    (this.spec.fields || []).forEach((field: any) => {
-      const value = this.formData[field.name];
-      if (field.required && (value === undefined || value === '' || (field.type === 'checkbox' && !value))) {
-        errors[field.name] = 'This field is required.';
-      }
-      if (field.maxLength && value && value.length > field.maxLength) {
-        errors[field.name] = `Max length is ${field.maxLength} characters.`;
-      }
-      if (field.type === 'email' && value) {
-        // Simple email regex
-        const re = /\S+@\S+\.\S+/;
-        if (!re.test(value)) {
-          errors[field.name] = 'Invalid email format.';
-        }
-      }
-    });
-    return errors;
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
   }
 
-  private handleSubmit(e: Event) {
+  h2 {
+    margin-bottom: 0.5em;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #21243d;
+    letter-spacing: -1px;
+    text-align: center;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    gap: 0.4em;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea,
+  select {
+    padding: 0.65em 0.9em;
+    border: 1.5px solid #cfcfd7;
+    border-radius: 0.7em;
+    font-size: 1.03rem;
+    background: #fff;
+    color: #000; /* <-- Ensures black text */
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #607aff;
+    box-shadow: 0 0 0 2px #dbeafe;
+  }
+
+  input[type="checkbox"] {
+    width: 1.1em;
+    height: 1.1em;
+    accent-color: #607aff;
+    margin-right: 0.6em;
+    vertical-align: middle;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    gap: 0.6em;
+  }
+
+  button[type="submit"] {
+    margin-top: 0.5em;
+    padding: 0.85em 0;
+    border: none;
+    border-radius: 0.8em;
+    background: linear-gradient(90deg, #607aff 60%, #8eafff 100%);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(60,90,160,0.08);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  button[type="submit"]:hover,
+  button[type="submit"]:focus {
+    background: linear-gradient(90deg, #4b6aff 70%, #7aa9ff 100%);
+    box-shadow: 0 4px 14px rgba(60,90,160,0.14);
+  }
+
+  .form-message {
+    color: #d7263d;
+    font-size: 0.95rem;
+    margin-top: 0.3em;
+    margin-bottom: -0.5em;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+  }
+`;
+
+  private _onInput(e: Event, name: string) {
+    const target = e.target as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | HTMLSelectElement;
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+      this._formValues[name] = target.checked;
+    } else {
+      this._formValues[name] = target.value;
+    }
+  }
+
+  private _onSubmit(e: Event) {
     e.preventDefault();
-    const errors = this.validate();
-    if (Object.keys(errors).length > 0) {
-      this.errors = errors;
-      return;
+    // Output values to the console; in real use, dispatch a custom event instead
+    console.log("Form submitted:", this._formValues);
+    alert(JSON.stringify(this._formValues, null, 2));
+  }
+
+  renderField(field: Field) {
+    switch (field.type) {
+      case "text":
+      case "email":
+        return html`
+          <label>
+            ${field.label}
+            <input
+              type=${field.type}
+              name=${field.name}
+              placeholder=${field.placeholder ?? ""}
+              maxlength=${field.maxLength ?? ""}
+              ?required=${field.required ?? false}
+              @input=${(e: Event) => this._onInput(e, field.name)}
+            />
+          </label>
+        `;
+      case "select":
+        return html`
+          <label>
+            ${field.label}
+            <select
+              name=${field.name}
+              ?required=${field.required ?? false}
+              @change=${(e: Event) => this._onInput(e, field.name)}
+            >
+              ${(field.options ?? []).map(
+                (opt) =>
+                  html`<option
+                    value=${opt.value}
+                    ?selected=${field.value === opt.value}
+                  >
+                    ${opt.label}
+                  </option>`
+              )}
+            </select>
+          </label>
+        `;
+      case "checkbox":
+        return html`
+          <label style="display: flex; flex-direction: row;">
+            <input
+              type="checkbox"
+              name=${field.name}
+              ?required=${field.required ?? false}
+              @change=${(e: Event) => this._onInput(e, field.name)}
+            />
+            <span> ${field.label}</span>
+          </label>
+        `;
+      case "textarea":
+        return html`
+          <label >
+            ${field.label}
+            <textarea
+              name=${field.name}
+              maxlength=${field.maxLength ?? ""}
+              @input=${(e: Event) => this._onInput(e, field.name)}
+            >
+${field.value ?? ""}</textarea
+            >
+          </label>
+        `;
+      default:
+        return html`<div>Unsupported field type: ${field.type}</div>`;
     }
-    // Form is valid!
-    alert('Form submitted! Data:\n' + JSON.stringify(this.formData, null, 2));
-    // Dispatch event, handle as needed
-    this.dispatchEvent(new CustomEvent('form-submit', { detail: this.formData }));
   }
 
   render() {
-    if (!this.spec || !Array.isArray(this.spec.fields)) {
-      return html`<div>Invalid form specification.</div>`;
-    }
+    if (!this.spec) return html`<div>No form spec provided.</div>`;
+
     return html`
-      <form class="form-container" @submit=${this.handleSubmit}>
+      <form @submit=${this._onSubmit}>
         <h2>${this.spec.title}</h2>
-        ${this.spec.fields.map(
-          (field: any) => html`
-            <form-field
-              .field=${field}
-              .value=${this.formData[field.name] ?? field.value ?? ''}
-              .error=${this.errors[field.name] ?? ''}
-              @field-change=${this.handleFieldChange}
-            ></form-field>
-          `
-        )}
-        ${Object.keys(this.errors).length > 0
-          ? html`<div class="error">Please fix the errors above.</div>`
-          : ''}
+        ${this.spec.fields.map((field) => this.renderField(field))}
         <button type="submit">Submit</button>
       </form>
     `;
