@@ -1,131 +1,146 @@
 import { LitElement, html, css } from "lit-element";
 import { property, customElement } from "lit/decorators.js";
 import { ifDefined } from 'lit/directives/if-defined.js';
-import type { Field, FormSpec } from "./types/types";
-import "./input-components/input";
 
+//Data types
+type Field = {
+  id: string;
+  type: string;
+  name: string;
+  label: string;
+  placeholder?: string;
+  maxLength?: number;
+  required?: boolean;
+  options?: { label: string; value: string }[];
+  value?: string;
+};
 
-@customElement("dynamic-form")
+type FormSpec = {
+  title: string;
+  fields: Field[];
+};
+
+//Declaration of the custom element
+@customElement("dynamic-form-second")
 export class DynamicForm extends LitElement {
-  @property({ type: Object }) spec: FormSpec | null = null;
 
-  //Save the values
+  //Props and value storage 
+  @property({ type: Object }) spec: FormSpec | null = null;
   private _formValues: Record<string, any> = {};
 
-  //Handles values whenever the for form changgs
-  private _onFieldInput(e: CustomEvent) {
-    const { name, value } = e.detail;
-    this._formValues[name] = value;
+//Handle user input
+  private _onInput(e: Event, name: string) {
+    const target = e.target as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | HTMLSelectElement;
+    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+      this._formValues[name] = target.checked;
+    } else {
+      this._formValues[name] = target.value;
+    }
   }
 
-  //Submit and validate the form + logging the values and show them in an alert :)
+  //handle submission
   private _onSubmit(e: Event) {
     e.preventDefault();
-  const fields = this.renderRoot.querySelectorAll('dynamic-input-field');
-  let valid = true;
-  fields.forEach((field: any) => {
-    if (typeof field.validate === 'function') {
-      if (!field.validate()) valid = false;
-    }
-  }); 
-    if (!valid) {
-    alert('fill in the required fields');
-    return;
-  }
     console.log("Form submitted:", this._formValues);
     alert(JSON.stringify(this._formValues, null, 2));
   }
 
-  //Render the fields based on each type
+  //Draws the fields select, email, checkbox etc...
   renderField(field: Field) {
-    const fieldId = `field-${field.name}`;
-    switch (field.type) {
+     const fieldId = `field-${field.name}`;
+     switch (field.type) {
       case "text":
       case "email":
         return html`
-          <div>
-             <dynamic-input-field id="dynamicInputField" .field=${field} @field-input=${this._onFieldInput}></dynamic-input-field>
-          </div>
+          <label>
+            ${field.label}
+            <input
+              id=${fieldId}
+              type=${field.type}
+              name=${field.name}
+              placeholder=${field.placeholder ?? ""}
+              maxlength=${ifDefined(field.maxLength)}
+              ?required=${field.required ?? false}
+              @input=${(e: Event) => this._onInput(e, field.name)}
+            />
+          </label>
         `;
       case "select":
         return html`
-        <div>
           <label for=${fieldId}>${field.label}</label>
-        
-          <select
+        <select
           id=${fieldId}
           name=${field.name}
           .value=${field.value ?? ""}
           ?required=${field.required ?? false}
-          >
+          @change=${(e: Event) => this._onInput(e, field.name)}
+        >
           ${(field.options ?? []).map(
-          (opt) => html`<option value=${opt.value}>${opt.label}</option>`
-        )}
+            (opt) => html`<option value=${opt.value}>${opt.label}</option>`
+          )}
             </select>
-        </div>
+          </label>
         `;
-      case "checkbox":
-        return html`
-      <div>
+     case "checkbox":
+      return html`
         <label style="display: flex; flex-direction: row;" for=${fieldId}>
           <input
-          id=${fieldId}
-          type="checkbox"
-          name=${field.name}
-          .checked=${!!field.value}
-          ?required=${field.required ?? false}
+            id=${fieldId}
+            type="checkbox"
+            name=${field.name}
+            .checked=${!!field.value}
+            ?required=${field.required ?? false}
+            @change=${(e: Event) => this._onInput(e, field.name)}
           />
           <span>${field.label}</span>
         </label>
-      </div>
       `;
-      case "textarea":
-        return html`
+     case "textarea":
+      return html`
         <label for=${fieldId}>${field.label}</label>
         <textarea
           id=${fieldId}
           name=${field.name}
           .value=${field.value ?? ""}
            maxlength=${ifDefined(field.maxLength)}
+          @input=${(e: Event) => this._onInput(e, field.name)}
         ></textarea>
       `;
-      default:
-        return html`<div>Unsupported field type: ${field.type}</div>`;
+    default:
+      return html`<div>Unsupported field type: ${field.type}</div>`;
     }
   }
 
-  //render and show msg if no spec is provided otherwise show form using the spec
+  //Draws the form
   render() {
     if (!this.spec) return html`<div>No form spec provided.</div>`;
 
     return html`
       <form @submit=${this._onSubmit}>
-        <h2 class="headliner">${this.spec.title}</h2>
+        <h2>${this.spec.title}</h2>
         ${this.spec.fields.map((field) => this.renderField(field))}
         <button type="submit">Submit</button>
       </form>
     `;
   }
 
-  //Isolated styles for the form
-  static styles = css`
+  //Styles
+static styles = css`
   :host {
     display: block;
     max-width: 520px;
     width: 100%;
     margin: 2rem auto;
     font-family: system-ui, sans-serif;
-    background: #faf5f5;
-    border-radius: 0.5rem;
+    background: #f9fafb;
+    border-radius: 1.5rem;
     box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1.5px 6px rgba(0,0,0,0.02);
     padding: 2.5rem 2rem 2rem 2rem;
   }
-div{
-    display: flex;
-    flex-direction: column;
-    padding:0;
-    margin:0;
-}
+
   form {
     display: flex;
     flex-direction: column;
@@ -140,8 +155,19 @@ div{
     letter-spacing: -1px;
     text-align: center;
   }
-  textar
-  ea,
+
+  label {
+    display: flex;
+    flex-direction: column;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    gap: 0.4em;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea,
   select {
     padding: 0.65em 0.9em;
     border: 1.5px solid #cfcfd7;
@@ -156,8 +182,14 @@ div{
   textarea {
     min-height: 80px;
     resize: vertical;
-    background:white !important;
-    color: black;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #607aff;
+    box-shadow: 0 0 0 2px #dbeafe;
   }
 
   input[type="checkbox"] {
@@ -205,14 +237,6 @@ div{
     font-weight: 500;
     letter-spacing: 0.1px;
   }
-
-  .headliner{
-  padding:0 !important;
-  margin:0 !important;
-}
-  #dynamicInputField{
-    padding:0;
-    margin:0;
-  }
 `;
 }
+

@@ -19,11 +19,11 @@
       "type": "select",
       "name": "country",
       "label": "Country",
-      "value": "da",
+      "value": "thai",
       "options": [
-        { "label": "Denmark", "value": "dk" },
-        { "label": "Germany", "value": "de" },
-        { "label": "USA", "value": "us" }
+        { "label": "Japan", "value": "jap" },
+        { "label": "China", "value": "chn" },
+        { "label": "Vietnam", "value": "vnm" }
       ],
       "required": true
     },
@@ -38,7 +38,7 @@
       "name": "bio",
       "label": "Short Bio",
       "maxLength": 250,
-      "value": "I love pizza"
+      "value": "I love sushi"
     }
   ]
 }
