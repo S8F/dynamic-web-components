@@ -1,23 +1,61 @@
-import { html, fixture, expect } from '@open-wc/testing';
-import '../components/dynamic-form'; // adjust path if needed
+import { describe, it, expect, vi } from "vitest";
+import { fixture, html } from "@open-wc/testing-helpers";
+import "../components/dynamic-form";
+import { FieldMock } from "./field-mock"; 
 
-describe('DynamicForm', () => {
-  it('renders both dynamic and classic fields', async () => {
-    const mockFields = [
-      { label: 'First Name', type: 'text', name: 'firstName', placeholder: 'First', required: true },
-      { label: 'Last Name', type: 'text', name: 'lastName', placeholder: 'Last', required: false },
-    ];
-    const el = await fixture(html`
-      <dynamic-form .fields=${mockFields}></dynamic-form>
-    `);
+// Minimal mock for <dynamic-input-field>
+customElements.define(
+  "dynamic-input-field",
+  class extends HTMLElement {
+    validate() { return true; }
+  }
+);
 
-    // Check for dynamic input field
-    const dynamic = el.shadowRoot!.querySelector('dynamic-input-field');
-    expect(dynamic).to.exist;
+// Create field using FieldMock
+const testField = Object.assign(new FieldMock(), {
+  id: "user",
+  type: "text",
+  name: "user",
+  label: "User"
+});
 
-    // Check for classic input field
-    const classic = el.shadowRoot!.querySelector('input[name="firstName"]');
-    expect(classic).to.exist;
-    expect(classic!.getAttribute('placeholder')).to.equal('First');
+const formSpec = {
+  title: "Simple Form",
+  fields: [testField]
+};
+
+describe("<dynamic-form>", () => {
+  it("renders no spec message", async () => {
+    const el = await fixture(html`<dynamic-form></dynamic-form>`);
+    expect(el.shadowRoot?.textContent).toContain("No form spec provided");
   });
+
+  it("renders form fields from spec", async () => {
+    const el = await fixture(html`<dynamic-form .spec=${formSpec}></dynamic-form>`);
+    expect(el.shadowRoot?.querySelector("form")).toBeTruthy();
+    expect(el.shadowRoot?.textContent).toContain("Simple Form");
+    expect(el.shadowRoot?.querySelectorAll("dynamic-input-field").length).toBe(1);
+  });
+
+  it("updates _formValues on field input", async () => {
+    const el = await fixture(html`<dynamic-form .spec=${formSpec}></dynamic-form>`);
+    const input = el.shadowRoot?.querySelector("dynamic-input-field");
+    input?.dispatchEvent(new CustomEvent("field-input", { detail: { name: "user", value: "foo" }, bubbles: true }));
+    expect((el as any)._formValues["user"]).toBe("foo");
+  });
+
+it("alerts on invalid submit", async () => {
+  const el = await fixture(html`<dynamic-form .spec=${formSpec}></dynamic-form>`);
+  const alert = vi.spyOn(window, "alert").mockImplementation(() => {});
+
+  // Set validate to return false for THIS instance:
+  const input = el.shadowRoot?.querySelector("dynamic-input-field");
+  if (input) (input as any).validate = () => false;
+
+  el.shadowRoot?.querySelector("form")?.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+
+  expect(alert).toHaveBeenCalledWith(expect.stringContaining("required"));
+  alert.mockRestore();
+});
+
 });

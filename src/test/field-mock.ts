@@ -1,16 +1,11 @@
-export const mockFields = [
-  {
-    label: 'Username',
-    type: 'text',
-    name: 'username',
-    placeholder: 'Enter username',
-    required: true,
-  },
-  {
-    label: 'Email',
-    type: 'email',
-    name: 'email',
-    placeholder: 'Enter email',
-    required: false,
-  },
-];
+export class FieldMock {
+  id = '';
+  type = '';
+  name = '';
+  label = '';
+  placeholder?: string = undefined;
+  maxLength?: number = undefined;
+  required?: boolean = undefined;
+  options?: { label: string; value: string }[] = undefined;
+  value?: string = undefined;
+}
