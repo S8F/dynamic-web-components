@@ -2,9 +2,9 @@
 Run
 ----------------------------------------------------------------------------
 
-npm i
-npm run dev
-http://localhost:5173/
+- npm i 
+- npm run dev
+- http://localhost:5173/
 
 ----------------------------------------------------------------------------
 Description
@@ -48,8 +48,8 @@ Improvements with More Time
 ----------------------------------------------------------------------------
 
 **With additional time, I would:**
-**- Add comprehensive validation and error handling for both approaches.**
-**- Implement more advanced field types (e.g., selects, checkboxes, date pickers).**
-**- Improve accessibility (ARIA attributes, keyboard navigation).**
-**- Add unit and integration tests for components and form logic.**
-**- Enhance styling and theming for better user experience.**
+- **Add comprehensive validation and error handling for both approaches.**
+- **Implement more advanced field types (e.g., selects, checkboxes, date pickers).**
+- **Improve accessibility (ARIA attributes, keyboard navigation).**
+- **Add unit and integration tests for components and form logic.**
+- **Enhance styling and theming for better user experience.**
