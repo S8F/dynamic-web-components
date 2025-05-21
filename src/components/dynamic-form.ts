@@ -36,63 +36,80 @@ export class DynamicForm extends LitElement {
     alert(JSON.stringify(this._formValues, null, 2));
   }
 
+  //Handle native input events
+  private _onNativeInput(e: Event) {
+  const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+  let value: any;
+  if (target.type === "checkbox") {
+    value = (target as HTMLInputElement).checked;
+  } else {
+    value = target.value;
+  }
+  this._formValues[target.name] = value;
+}
   //Render the fields based on each type
   renderField(field: Field) {
-    const fieldId = `field-${field.name}`;
-    switch (field.type) {
-      case "text":
-      case "email":
-        return html`
-          <div>
-             <dynamic-input-field id="dynamicInputField" .field=${field} @field-input=${this._onFieldInput}></dynamic-input-field>
-          </div>
-        `;
-      case "select":
-        return html`
+  const fieldId = `field-${field.name}`;
+  switch (field.type) {
+    case "text":
+    case "email":
+      return html`
+        <div>
+          <dynamic-input-field
+            id="dynamicInputField"
+            .field=${field}
+            @field-input=${this._onFieldInput}
+          ></dynamic-input-field>
+        </div>
+      `;
+    case "select":
+      return html`
         <div>
           <label for=${fieldId}>${field.label}</label>
-        
           <select
-          id=${fieldId}
-          name=${field.name}
-          .value=${field.value ?? ""}
-          ?required=${field.required ?? false}
+            id=${fieldId}
+            name=${field.name}
+            .value=${field.value ?? ""}
+            ?required=${field.required ?? false}
+            @change=${this._onNativeInput}
           >
-          ${(field.options ?? []).map(
-          (opt) => html`<option value=${opt.value}>${opt.label}</option>`
-        )}
-            </select>
+            ${(field.options ?? []).map(
+              (opt) => html`<option value=${opt.value}>${opt.label}</option>`
+            )}
+          </select>
         </div>
-        `;
-      case "checkbox":
-        return html`
-      <div>
-        <label style="display: flex; flex-direction: row;" for=${fieldId}>
-          <input
-          id=${fieldId}
-          type="checkbox"
-          name=${field.name}
-          .checked=${!!field.value}
-          ?required=${field.required ?? false}
-          />
-          <span>${field.label}</span>
-        </label>
-      </div>
       `;
-      case "textarea":
-        return html`
+    case "checkbox":
+      return html`
+        <div>
+          <label style="display: flex; flex-direction: row;" for=${fieldId}>
+            <input
+              id=${fieldId}
+              type="checkbox"
+              name=${field.name}
+              .checked=${!!field.value}
+              ?required=${field.required ?? false}
+              @change=${this._onNativeInput}
+            />
+            <span>${field.label}</span>
+          </label>
+        </div>
+      `;
+    case "textarea":
+      return html`
         <label for=${fieldId}>${field.label}</label>
         <textarea
           id=${fieldId}
           name=${field.name}
           .value=${field.value ?? ""}
-           maxlength=${ifDefined(field.maxLength)}
+          maxlength=${ifDefined(field.maxLength)}
+          @input=${this._onNativeInput} 
         ></textarea>
       `;
-      default:
-        return html`<div>Unsupported field type: ${field.type}</div>`;
-    }
+    default:
+      return html`<div>Unsupported field type: ${field.type}</div>`;
   }
+}
 
   //render and show msg if no spec is provided otherwise show form using the spec
   render() {

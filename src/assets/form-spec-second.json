@@ -38,7 +38,7 @@
       "name": "bio",
       "label": "Short Bio",
       "maxLength": 250,
-      "value": "I love sushi"
+      "value": ""
     }
   ]
 }
