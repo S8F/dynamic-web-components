@@ -21,9 +21,10 @@
       "label": "Country",
       "value": "thai",
       "options": [
-        { "label": "Japan", "value": "jap" },
-        { "label": "China", "value": "chn" },
-        { "label": "Vietnam", "value": "vnm" }
+          { "label": "Location", "value": "Locaction" },
+        { "label": "Japan", "value": "Japan" },
+        { "label": "China", "value": "China" },
+        { "label": "Vietnam", "value": "Vietnam" }
       ],
       "required": true
     },

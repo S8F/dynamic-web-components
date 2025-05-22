@@ -21,9 +21,10 @@
       "label": "Country",
       "value": "da",
       "options": [
-        { "label": "Denmark", "value": "dk" },
-        { "label": "Germany", "value": "de" },
-        { "label": "USA", "value": "us" }
+        { "label": "Location", "value": "Locaction" },
+        { "label": "Denmark", "value": "Denmark" },
+        { "label": "Germany", "value": "Germany" },
+        { "label": "USA", "value": "Usa" }
       ],
       "required": true
     },

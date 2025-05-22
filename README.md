@@ -9,6 +9,10 @@ Run
 ----------------------------------------------------------------------------
 Description
 ----------------------------------------------------------------------------
+**This solution is a simple dynamic form web component built with Lit and TypeScript. The component <dynamic-form> takes a form specification (spec), describing what fields to render (like text, select, checkbox, etc.), and generates the entire form dynamically. It’s a great starting point for use cases where form structures change at runtime, like CMS back offices (Umbraco in this case), survey tools, or admin panels.**
+S
+**The json has 2 properjson files**
+
 
 **I have made 2 types of dynamic web componenets.**
 **The first tab (West) uses the dynamic input aproach**  
@@ -48,8 +52,7 @@ Improvements with More Time
 ----------------------------------------------------------------------------
 
 **With additional time, I would:**
-- **Add comprehensive validation and error handling for both approaches.**
-- **Implement more advanced field types (e.g., selects, checkboxes, date pickers).**
-- **Improve accessibility (ARIA attributes, keyboard navigation).**
-- **Add unit and integration tests for components and form logic.**
+- **Add more comprehensive validation and error handling for both approaches**
+- **Implement more advanced field types -> selects, checkboxes etc.**
+- **Install r**
 - **Enhance styling and theming for better user experience.**

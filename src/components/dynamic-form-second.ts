@@ -28,18 +28,21 @@ export class DynamicForm extends LitElement {
   @property({ type: Object }) spec: FormSpec | null = null;
   private _formValues: Record<string, any> = {};
 
-//Handle user input
-  private _onInput(e: Event, name: string) {
-    const target = e.target as
-      | HTMLInputElement
-      | HTMLTextAreaElement
-      | HTMLSelectElement;
-    if (target instanceof HTMLInputElement && target.type === "checkbox") {
+//Handle user input & update inputs with lates values
+private _onInput(e: Event, name: string) {
+  const target = e.target as (HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null);
+  if (!target) return;
+
+  if (target instanceof HTMLInputElement) {
+    if (target.type === "checkbox") {
       this._formValues[name] = target.checked;
     } else {
       this._formValues[name] = target.value;
     }
+  } else if ('value' in target) {
+    this._formValues[name] = target.value;
   }
+}
 
   //handle submission
   private _onSubmit(e: Event) {
@@ -114,10 +117,9 @@ export class DynamicForm extends LitElement {
     }
   }
 
-  //Draws the form
+  //Drawing the form
   render() {
     if (!this.spec) return html`<div>No form spec provided.</div>`;
-
     return html`
       <form @submit=${this._onSubmit}>
         <h2>${this.spec.title}</h2>
