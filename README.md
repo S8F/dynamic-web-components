@@ -56,3 +56,4 @@ Improvements with More Time
 - **Implement more advanced field types -> selects, checkboxes etc.**
 - **Install r**
 - **Enhance styling and theming for better user experience.**
+-**lit-lab for integration, redux for global state and purify for security**
