@@ -3,7 +3,7 @@ import './components/dynamic-form-second.ts';
 import spec from './assets/form-spec.json';
 import spec2 from './assets/form-spec-second.json';
 
-// Once the DOM is loaded, set the spec
+// Once the DOM is loaded, set the spec in the dynamic-form 
 window.addEventListener('DOMContentLoaded', () => {
   const formWest = document.querySelector('dynamic-form');
   const formEast = document.querySelector('dynamic-form-second');
